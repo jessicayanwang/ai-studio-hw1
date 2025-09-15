@@ -1,0 +1,1 @@
+Hi everyone, I'm Jessica Wang, a Harvard Master's candidate in Data Science with a passion for Machine Learning. I'll be graduating in December 2025 and available from January 2026. Let's connect and explore the world of data together!

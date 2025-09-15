@@ -1,0 +1,21 @@
+build_outline:
+  description: >
+    Using the profile information provided in the knowledge source, build a structured outline with exactly these fields:
+    - Name
+    - Program
+    - Background
+    - Interests
+    - Fun detail
+    Keep it concise and factual (max 5 bullets).
+  expected_output: >
+    A bullet outline with 5 items exactly as listed.
+  agent: "profile_selector"
+
+write_script:
+  description: >
+    Using the outline from Task 1, draft a 2–3 sentence self-introduction
+    under 60 words. It should be natural, clear, and friendly — something Jessica
+    could say out loud to classmates. Avoid jargon, keep it approachable.
+  expected_output: >
+    A short paragraph (2–3 sentences, <60 words) ready to use as an introduction.
+  agent: "script_writer"
