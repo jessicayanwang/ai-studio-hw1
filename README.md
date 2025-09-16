@@ -17,7 +17,7 @@ crewai install
 
 ## Setup
 
-1. Add your `OPENAI_API_KEY` into the `.env` file**
+1. Add your `OPENAI_API_KEY` into the `.env` file.
 2. Add your resume to the knowledge/ folder (currently Jessica's resume is included as an example - replace it with your own to personalize the intro).
    
 ## Running the Project
@@ -44,8 +44,6 @@ This project uses a simple pipeline:
 
 - **Agent 2 – Script Writer**  
   Takes the outline from Agent 1 and generates a friendly 2–3 sentence self-introduction, saving it to `intro.md`.
-
----
 
 **Tasks:**
 
