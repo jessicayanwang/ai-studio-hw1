@@ -19,6 +19,10 @@ crewai install
 
 1. Add your `OPENAI_API_KEY` into the `.env` file.
 2. Add your resume to the knowledge/ folder (currently Jessica's resume is included as an example - replace it with your own to personalize the intro).
+3. To remove previously stored knowledge, run:
+```bash
+crewai reset-memories --knowledge
+```
    
 ## Running the Project
 
@@ -49,6 +53,11 @@ This project uses a simple pipeline:
 
 1. **Build Outline** – Profile Selector creates a bullet-point outline from the user profile.  
 2. **Write Script** – Script Writer converts the outline into a short intro and writes it to file.  
+
+## Reflection
+
+Reflection document is stored in `reflection.md`.
+
 ---
 
 ## Support
