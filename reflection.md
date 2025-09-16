@@ -32,6 +32,7 @@ crewai reset-memories --knowledge
 ## Test Run Example
 
 **Retrieved Knowledge**
+
 Additional Information: JESSICA WANG
 MachineLearning&DataScience | Harvard M.S. Candidate | Graduation Dec 2025
 Available Jan 2026
@@ -44,7 +45,9 @@ B.S. Data Science, Minor in Mathematics cGPA: 3.99/4.00
 ...
 
 **Agent: Profile Selector**
-Task: Using the profile information provided in the knowledge source, build a structured outline with exactly these fields:
+
+Task: 
+Using the profile information provided in the knowledge source, build a structured outline with exactly these fields:
 - Name
 - Program
 - Background
@@ -60,7 +63,9 @@ Final Answer:
 - Fun detail: Built an augmented reality application on Microsoft HoloLens to assist presenters during Q&A sessions.
 
 **Agent: Script Writer**
-Task: Using the outline from Task 1, draft a 2–3 sentence self-introduction under 60 words.
+
+Task: 
+Using the outline from Task 1, draft a 2–3 sentence self-introduction under 60 words.
 It should be natural, clear, and friendly — something Jessica could say out loud to classmates.
 Avoid jargon, keep it approachable.
 
