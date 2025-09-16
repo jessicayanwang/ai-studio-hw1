@@ -1,32 +1,25 @@
 # Hw1 Crew
 
-Welcome to the Hw1 Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
+Welcome to the **Hw1 Crew** project, powered by [crewAI](https://crewai.com).  
+This project demonstrates a simple multi-agent AI system that introduces the user to a class using **two agents** and **two tasks**.
 
 ## Installation
 
-Ensure you have Python >=3.10 <3.14 installed on your system. This project uses [UV](https://docs.astral.sh/uv/) for dependency management and package handling, offering a seamless setup and execution experience.
-
-First, if you haven't already, install uv:
-
+Ensure you have Python >=3.10 <3.14 installed on your system. This project includes a `requirements.txt` file that lists all required packages. You can install them with:
+```bash
+pip install -r requirements.txt
+```
+Alternatively, if you’re using UV (recommended for speed and reproducibility):
 ```bash
 pip install uv
-```
-
-Next, navigate to your project directory and install the dependencies:
-
-(Optional) Lock the dependencies and install them by using the CLI command:
-```bash
 crewai install
 ```
-### Customizing
 
-**Add your `OPENAI_API_KEY` into the `.env` file**
+## Setup
 
-- Modify `src/hw1/config/agents.yaml` to define your agents
-- Modify `src/hw1/config/tasks.yaml` to define your tasks
-- Modify `src/hw1/crew.py` to add your own logic, tools and specific args
-- Modify `src/hw1/main.py` to add custom inputs for your agents and tasks
-
+1. Add your `OPENAI_API_KEY` into the `.env` file**
+2. Add your resume to the knowledge/ folder (currently Jessica's resume is included as an example - replace it with your own to personalize the intro).
+   
 ## Running the Project
 
 To kickstart your crew of AI agents and begin task execution, run this from the root folder of your project:
@@ -34,14 +27,31 @@ To kickstart your crew of AI agents and begin task execution, run this from the 
 ```bash
 $ crewai run
 ```
+or
+```bash
+$ python src/hw1/main.py
+```
 
-This command initializes the hw1 Crew, assembling the agents and assigning them tasks as defined in your configuration.
+Both commands will assemble your crew and execute the tasks as defined in your configuration.
 
-This example, unmodified, will run the create a `report.md` file with the output of a research on LLMs in the root folder.
 
-## Understanding Your Crew
+## Crew Design: 2 Agents + 2 Tasks
 
-The hw1 Crew is composed of multiple AI agents, each with unique roles, goals, and tools. These agents collaborate on a series of tasks, defined in `config/tasks.yaml`, leveraging their collective skills to achieve complex objectives. The `config/agents.yaml` file outlines the capabilities and configurations of each agent in your crew.
+This project uses a simple pipeline:
+
+- **Agent 1 – Profile Selector**  
+  Extracts the most relevant details about the user (name, program, background, interests, fun detail).
+
+- **Agent 2 – Script Writer**  
+  Takes the outline from Agent 1 and generates a friendly 2–3 sentence self-introduction, saving it to `intro.md`.
+
+---
+
+**Tasks:**
+
+1. **Build Outline** – Profile Selector creates a bullet-point outline from the user profile.  
+2. **Write Script** – Script Writer converts the outline into a short intro and writes it to file.  
+---
 
 ## Support
 
