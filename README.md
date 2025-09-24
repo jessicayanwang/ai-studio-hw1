@@ -61,9 +61,10 @@ Reflection document is stored in `reflection.md`.
 ---
 ## HW2 Extension: Connected Agent Using the Nanda Adapter SDK
 1. Setup EC2 perms and Anthropic API key.
-2. To run the project:
+2. Install Nanda.
+3. To run the project:
 ```bash
-nohup python3 adapter/nanda_adapter/examples/langchain_pirate.py > out.log 2>&1 &
+nohup python3 ai-studio-hw1/nanda_crewai.py > out.log 2>&1 &
 ```
 3. To check the output
 ```bash
