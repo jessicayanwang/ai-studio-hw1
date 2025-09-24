@@ -1,4 +1,4 @@
-# Hw1 Crew
+# Hw1/Hw2 Crew
 
 Welcome to the **Hw1 Crew** project, powered by [crewAI](https://crewai.com).  
 This project demonstrates a simple multi-agent AI system that introduces the user to a class using **two agents** and **two tasks**.
@@ -57,6 +57,19 @@ This project uses a simple pipeline:
 ## Reflection
 
 Reflection document is stored in `reflection.md`.
+
+---
+## HW2 Extension: Connected Agent Using the Nanda Adapter SDK
+1. Setup EC2 perms and Anthropic API key.
+2. To run the project:
+```bash
+nohup python3 adapter/nanda_adapter/examples/langchain_pirate.py > out.log 2>&1 &
+```
+3. To check the output
+```bash
+cat out.log
+```
+
 
 ---
 
