@@ -41,9 +41,10 @@ Both commands will assemble your crew and execute the tasks as defined in your c
 
 ## Voice Mode: Whisper STT + Kokoro TTS
 
-- **Dependencies**: see `requirements.txt` for `faster-whisper`, `sounddevice`, `soundfile`, `kokoro-onnx`, `onnxruntime`.
+- **Dependencies**: see `requirements.txt` for `faster-whisper`, `sounddevice`, `soundfile`, `kokoro>=0.9.4`, `torch`.
+- **System Requirements**: Install `espeak-ng` via `brew install espeak-ng` (required for Kokoro TTS phonemization).
 - **Env**: put your `OPENAI_API_KEY` in `.env` (CrewAI -> OpenAI backend). If using UV or venv, ensure it's loaded in your shell.
-- **Kokoro models**: `kokoro-onnx` may require downloading voice models. If TTS fails, the CLI will still print the text and skip playback.
+- **Kokoro models**: First run will download Kokoro models (~327MB) from HuggingFace. If TTS fails, the CLI will still print the text and skip playback.
 
 Run the voice CLI (records audio, transcribes, runs Crew, then speaks the reply):
 
@@ -70,7 +71,8 @@ Flow:
 
 Troubleshooting:
 - If you see audio device errors, ensure microphone permissions are granted to your terminal/IDE.
-- If Kokoro errors, install models per `kokoro-onnx` docs; the CLI will continue without playback.
+- If Kokoro errors, ensure `espeak-ng` is installed (`brew install espeak-ng`) and numpy is <2.0 (`pip install "numpy<2.0"`); the CLI will continue without playback.
+- Use `--use_system_tts` flag to fallback to macOS `say` command if Kokoro setup is problematic.
 
 
 ## Crew Design: 2 Agents + 2 Tasks

@@ -38,17 +38,19 @@ User Voice Input → Whisper STT → CrewAI Agent → Kokoro TTS → Audio Outpu
    - Agents use knowledge source (resume PDF) to generate personalized intro
    - User voice input can modify tone/content preferences
 
-4. **Text-to-Speech** (`kokoro-onnx` with system fallback)
-   - Primary: Kokoro TTS (high-quality neural TTS)
+4. **Text-to-Speech** (`kokoro` with system fallback)
+   - Primary: Kokoro TTS (high-quality neural TTS using StyleTTS2 architecture)
+   - Uses `KPipeline` API with `espeak-ng` for phonemization
    - Fallback: macOS `say` command (system TTS)
-   - Outputs to `response.wav` and plays audio
+   - Outputs to `response.wav` and plays audio at 24kHz
 
 ### Libraries & APIs Used
 
 | Component | Library | Purpose |
 |-----------|---------|---------|
 | STT | `faster-whisper` | Local Whisper inference (no API key needed) |
-| TTS | `kokoro-onnx` | Neural text-to-speech synthesis |
+| TTS | `kokoro>=0.9.4` | Neural text-to-speech synthesis (StyleTTS2-based) |
+| Phonemization | `espeak-ng` (system) | Text-to-phoneme conversion for Kokoro |
 | Audio I/O | `sounddevice`, `soundfile` | Recording and playback |
 | Agent Framework | `crewai` | Multi-agent orchestration |
 | LLM Backend | `openai` (via CrewAI) | GPT-3.5-turbo for agent reasoning |
@@ -73,7 +75,8 @@ User Voice Input → Whisper STT → CrewAI Agent → Kokoro TTS → Audio Outpu
    - Added `voice_cli` console script entry point
 
 5. **`requirements.txt`**
-   - Added: `faster-whisper`, `sounddevice`, `soundfile`, `kokoro-onnx`, `onnxruntime`
+   - Added: `faster-whisper`, `sounddevice`, `soundfile`, `kokoro>=0.9.4`, `torch`
+   - Note: Requires `numpy<2.0` for scipy compatibility
 
 ---
 
@@ -135,7 +138,8 @@ building cool AI projects. Let's connect!
 - Audio feedback confirms system is working (recording, transcribing, etc.)
 
 ### 5. **Challenges**
-- **Kokoro setup**: Requires downloading voice models separately (not pip-installable)
+- **Kokoro setup**: Requires `espeak-ng` system dependency and downloads models (~327MB) on first run
+- **NumPy compatibility**: Needed to downgrade to `numpy<2.0` for scipy/transformers compatibility
 - **Environment variables**: Need to load `.env` explicitly in CLI context
 - **Audio permissions**: macOS requires microphone access approval
 
@@ -145,7 +149,10 @@ building cool AI projects. Let's connect!
 
 ### Setup
 ```bash
-# Install dependencies
+# Install system dependency for Kokoro TTS
+brew install espeak-ng
+
+# Install Python dependencies
 pip install -r requirements.txt
 
 # Install package in editable mode (for console scripts)
