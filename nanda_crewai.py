@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import sys, os
+import sys
+import os
 from nanda_adapter import NANDA
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))

@@ -7,6 +7,8 @@ build_outline:
     - Interests
     - Fun detail
     Keep it concise and factual (max 5 bullets).
+    If the user provides additional context or preferences, consider them:
+    "{user_prompt}"
   expected_output: >
     A bullet outline with 5 items exactly as listed.
   agent: "profile_selector"
@@ -16,6 +18,8 @@ write_script:
     Using the outline from Task 1, draft a 2–3 sentence self-introduction
     under 60 words. It should be natural, clear, and friendly — something Jessica
     could say out loud to classmates. Avoid jargon, keep it approachable.
+    If the user provided specific requests or tone preferences, reflect them:
+    "{user_prompt}"
   expected_output: >
     A short paragraph (2–3 sentences, <60 words) ready to use as an introduction.
   agent: "script_writer"

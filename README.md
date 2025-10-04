@@ -1,6 +1,6 @@
-# Hw1/Hw2 Crew
+# Self-Introduction Crew
 
-Welcome to the **Hw1 Crew** project, powered by [crewAI](https://crewai.com).  
+Welcome to the **Self-Introduction Crew** project, powered by [crewAI](https://crewai.com).  
 This project demonstrates a simple multi-agent AI system that introduces the user to a class using **two agents** and **two tasks**.
 
 ## Installation
@@ -39,6 +39,40 @@ $ python src/hw1/main.py
 Both commands will assemble your crew and execute the tasks as defined in your configuration.
 
 
+## Voice Mode: Whisper STT + Kokoro TTS
+
+- **Dependencies**: see `requirements.txt` for `faster-whisper`, `sounddevice`, `soundfile`, `kokoro-onnx`, `onnxruntime`.
+- **Env**: put your `OPENAI_API_KEY` in `.env` (CrewAI -> OpenAI backend). If using UV or venv, ensure it's loaded in your shell.
+- **Kokoro models**: `kokoro-onnx` may require downloading voice models. If TTS fails, the CLI will still print the text and skip playback.
+
+Run the voice CLI (records audio, transcribes, runs Crew, then speaks the reply):
+
+```bash
+# Option 1: via console script (after installing this package)
+voice_cli --duration 8 --model small --compute_type int8 --voice af_bella
+
+# Option 2: directly via Python
+python -m hw1.voice_cli --duration 8 --model small --compute_type int8 --voice af_bella
+```
+
+Flags:
+- `--duration`: recording length in seconds (default 8)
+- `--model`: Faster-Whisper model size (`tiny`, `base`, `small`, `medium`, `large-v3`)
+- `--compute_type`: `int8`, `float16`, or `float32`
+- `--voice`: Kokoro voice id (e.g., `af_bella`)
+- `--no_playback`: generate TTS `response.wav` but do not play it
+
+Flow:
+- Records mic audio to WAV
+- Transcribes with Faster-Whisper
+- Sends transcript as `user_prompt` to the Crew via `hw1.main.run_with_prompt()`
+- Synthesizes TTS with Kokoro; saves `response.wav`; plays it unless `--no_playback`
+
+Troubleshooting:
+- If you see audio device errors, ensure microphone permissions are granted to your terminal/IDE.
+- If Kokoro errors, install models per `kokoro-onnx` docs; the CLI will continue without playback.
+
+
 ## Crew Design: 2 Agents + 2 Tasks
 
 This project uses a simple pipeline:
@@ -54,12 +88,8 @@ This project uses a simple pipeline:
 1. **Build Outline** – Profile Selector creates a bullet-point outline from the user profile.  
 2. **Write Script** – Script Writer converts the outline into a short intro and writes it to file.  
 
-## Reflection
-
-Reflection document is stored in `reflection.md`.
-
 ---
-## HW2 Extension: Connected Agent Using the Nanda Adapter SDK
+## Connect Agent Using the Nanda Adapter SDK
 1. Setup EC2 perms and Anthropic API key.
 2. Install Nanda.
 3. To run the project:

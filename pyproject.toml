@@ -14,6 +14,7 @@ run_crew = "hw1.main:run"
 train = "hw1.main:train"
 replay = "hw1.main:replay"
 test = "hw1.main:test"
+voice_cli = "hw1.voice_cli:main"
 
 [build-system]
 requires = ["hatchling"]

@@ -1,3 +1,9 @@
 crewai==0.186.1
 crewai-tools==0.71.0
 openai==1.107.2
+faster-whisper
+sounddevice
+soundfile
+numpy
+kokoro>=0.9.4
+torch
