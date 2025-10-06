@@ -1,210 +1,75 @@
-# HW4: Multimodal Agent with Speech Capabilities
-## Jessica Wang - Harvard AI Studio
+# Multimodal Agent with Speech Capabilities
+**Jessica Wang**
 
 ---
 
-## Overview
+## Implementation: Voice Interaction System
 
-This project extends the HW1/HW2 CrewAI agent system by adding **speech-to-text (STT)** and **text-to-speech (TTS)** capabilities, enabling voice-based interaction with the multi-agent system.
+For this assignment, I extended my existing CrewAI multi-agent system (from HW1/HW2g) by adding speech-to-text (STT) and text-to-speech (TTS) capabilities. This allows users to interact with the agent through voice rather than text, creating a more natural conversational interface.
 
----
+### Architecture Overview
 
-## Implementation Details
+I implemented a pipeline that flows as follows: **User Voice Input → Whisper STT → CrewAI Agent → Kokoro TTS → Audio Output**. Each component was chosen to balance quality, latency, and ease of deployment.
 
-### Architecture
+### Libraries and Implementation Details
 
-The voice interaction system follows this pipeline:
+**Speech-to-Text (Whisper):** I used `faster-whisper`, a Python library that provides local inference for OpenAI's Whisper model. I chose this over the cloud-based Whisper API because it runs entirely locally, which means no API costs, better privacy, and no network dependency. The library supports multiple model sizes (tiny, base, small, medium, large-v3) and compute types (int8, float16, float32). For my implementation, I used the `small` model with `int8` quantization, which provides a good balance between accuracy and speed (~2-4 seconds transcription time).
 
-```
-User Voice Input → Whisper STT → CrewAI Agent → Kokoro TTS → Audio Output
-```
+**Audio Recording:** I used `sounddevice` and `soundfile` to capture microphone input and save it as a WAV file. I configured the recording at 16kHz sample rate, which is optimal for Whisper's performance. The recording duration is configurable (default 8 seconds), giving users enough time to speak their request.
 
-**Components:**
+**Agent Orchestration:** My existing CrewAI system consists of two agents: a Profile Selector that extracts relevant facts from my resume (stored as a PDF knowledge source), and a Script Writer that generates a personalized introduction. To integrate voice input, I modified the task configuration files (`src/hw1/config/tasks.yaml`) to accept a `{user_prompt}` template variable. This allows the transcribed speech to influence the agent's behavior—for example, if the user requests a "casual tone" or asks to "mention machine learning," the agents incorporate these preferences into their output.
 
-1. **Audio Recording** (`sounddevice` + `soundfile`)
-   - Captures microphone input as WAV file
-   - Configurable duration (default 8 seconds)
-   - 16kHz sample rate for optimal Whisper performance
+**Text-to-Speech (Kokoro):** For TTS, I used Kokoro (version 0.9.4+), an open-source neural TTS model based on StyleTTS2 architecture. Kokoro requires `espeak-ng` as a system dependency for phonemization (converting text to phonemes). I implemented the TTS using Kokoro's `KPipeline` API, which returns a generator that yields audio chunks. I concatenate these chunks and save the result as a 24kHz WAV file. The model downloads automatically (~327MB) on first run from HuggingFace. As a fallback, I also added support for macOS's built-in `say` command in case Kokoro setup fails.
 
-2. **Speech-to-Text** (`faster-whisper`)
-   - Transcribes audio using OpenAI's Whisper model
-   - Model sizes: tiny, base, small, medium, large-v3
-   - Compute types: int8 (fast), float16, float32 (accurate)
-   - Runs locally without API calls
+**Integration:** I created a new CLI tool (`src/hw1/voice_cli.py`) that orchestrates the entire pipeline. The CLI uses `python-dotenv` to load environment variables (like the OpenAI API key needed by CrewAI), records audio, transcribes it, passes the transcript to the agent via `crew.kickoff(inputs={"user_prompt": ...})`, synthesizes the response with Kokoro, and plays the audio back through the speakers.
 
-3. **Agent Orchestration** (CrewAI)
-   - Transcribed text passed as `user_prompt` input to crew
-   - Two-agent pipeline: Profile Selector → Script Writer
-   - Agents use knowledge source (resume PDF) to generate personalized intro
-   - User voice input can modify tone/content preferences
+### Technical Challenges
 
-4. **Text-to-Speech** (`kokoro` with system fallback)
-   - Primary: Kokoro TTS (high-quality neural TTS using StyleTTS2 architecture)
-   - Uses `KPipeline` API with `espeak-ng` for phonemization
-   - Fallback: macOS `say` command (system TTS)
-   - Outputs to `response.wav` and plays audio at 24kHz
+I encountered a few technical challenges during implementation:
 
-### Libraries & APIs Used
+1. **NumPy Compatibility:** Kokoro's dependencies (scipy, transformers) require `numpy<2.0`, but some other packages had installed numpy 2.3.3. I had to downgrade numpy to resolve import errors.
 
-| Component | Library | Purpose |
-|-----------|---------|---------|
-| STT | `faster-whisper` | Local Whisper inference (no API key needed) |
-| TTS | `kokoro>=0.9.4` | Neural text-to-speech synthesis (StyleTTS2-based) |
-| Phonemization | `espeak-ng` (system) | Text-to-phoneme conversion for Kokoro |
-| Audio I/O | `sounddevice`, `soundfile` | Recording and playback |
-| Agent Framework | `crewai` | Multi-agent orchestration |
-| LLM Backend | `openai` (via CrewAI) | GPT-3.5-turbo for agent reasoning |
-| Environment | `python-dotenv` | Load API keys from `.env` |
+2. **Model Loading:** Both Whisper and Kokoro load their models fresh on every run, which adds ~3-5 seconds of overhead. For a production system, I would implement model caching or a persistent server to keep models in memory.
 
-### Key Code Changes
-
-1. **`src/hw1/voice_cli.py`** (new)
-   - Main voice interaction loop
-   - Records audio, transcribes, runs crew, synthesizes speech
-   - CLI with configurable parameters
-
-2. **`src/hw1/main.py`**
-   - Added `run_with_prompt(user_prompt)` function
-   - Passes user input via `crew.kickoff(inputs={"user_prompt": ...})`
-
-3. **`src/hw1/config/tasks.yaml`**
-   - Injected `{user_prompt}` template variable into task descriptions
-   - Allows voice input to influence agent behavior
-
-4. **`pyproject.toml`**
-   - Added `voice_cli` console script entry point
-
-5. **`requirements.txt`**
-   - Added: `faster-whisper`, `sounddevice`, `soundfile`, `kokoro>=0.9.4`, `torch`
-   - Note: Requires `numpy<2.0` for scipy compatibility
+3. **Environment Variables:** When running the CLI as a standalone script, the `.env` file wasn't automatically loaded, causing the CrewAI agent to fail with missing API key errors. I fixed this by explicitly calling `load_dotenv()` at the start of the voice CLI script.
 
 ---
 
-## Example Run
+## Example Run and Insights
 
-### Input (Voice)
-**User speaks:** *"Make the intro a bit more casual and mention my love for machine learning."*
+For my demo video, I tested the system with the following voice input:
 
-### Transcription (Whisper)
+**Voice Input:** *"Make the intro a bit more casual and mention my love for machine learning."*
+
+**Whisper Transcription:** The `small` model transcribed my speech accurately: `"Make the intro a bit more casual and mention my love for machine learning."`
+
+**Agent Processing:** The CrewAI system processed this request through its two-agent pipeline:
+- The Profile Selector extracted key facts from my resume (name, program, background, interests)
+- The Script Writer received both the profile outline and my voice request, then generated an introduction that incorporated the "casual tone" and "machine learning" emphasis
+
+**Agent Output:**
 ```
-Transcript: Make the intro a bit more casual and mention my love for machine learning.
-```
-
-### Agent Processing (CrewAI)
-
-**Agent 1: Profile Selector**
-- Task: Extract relevant facts from Jessica's resume
-- Output: Bullet outline with name, program, background, interests, fun detail
-
-**Agent 2: Script Writer**
-- Task: Convert outline into 2-3 sentence intro
-- Input context: User's voice request for casual tone + ML emphasis
-- Output:
-```
-Hi everyone, I'm Jessica! A Harvard M.S. Data Science candidate, 
-with a passion for Machine Learning. I love coding in Python and 
-building cool AI projects. Let's connect!
+Hi everyone, I'm Jessica! An avid lover of machine learning and data science 
+pursuing my M.S. at Harvard. From Toronto to Cambridge, always ready for 
+exciting challenges!
 ```
 
-### Output (TTS)
-- Text synthesized to speech via Kokoro TTS (or system fallback)
-- Saved to `response.wav`
-- Played through speakers
+**TTS Synthesis:** Kokoro synthesized this text into natural-sounding speech, saved it to `response.wav`, and played it through my speakers.
 
----
+### Key Insights
 
-## Insights & Observations
+**Latency:** The total end-to-end latency was approximately 25-30 seconds: 8 seconds for recording (user-controlled), ~3 seconds for Whisper transcription, ~12-15 seconds for CrewAI agent execution (including LLM API calls and knowledge retrieval), and ~2 seconds for Kokoro TTS synthesis. The agent execution is the bottleneck—future optimizations could include streaming responses or using faster LLM models.
 
-### 1. **Latency Breakdown**
-- **Recording**: ~3-8 seconds (user-controlled)
-- **Whisper transcription**: ~2-5 seconds (depends on model size)
-- **CrewAI execution**: ~10-20 seconds (LLM API calls, knowledge retrieval)
-- **TTS synthesis**: ~1-2 seconds
-- **Total**: ~20-35 seconds for full voice interaction
+**Accuracy:** Whisper's transcription was excellent even with the `small` model. The agent successfully interpreted my voice request and adjusted both the tone (more casual) and content (emphasized machine learning). This demonstrates that the multi-agent system can effectively incorporate user preferences expressed through natural language.
 
-### 2. **Accuracy & Quality**
-- **Whisper STT**: Excellent accuracy even with `tiny` model for clear speech
-- **Agent understanding**: Successfully interprets voice requests (tone, content preferences)
-- **TTS quality**: Kokoro provides natural-sounding speech (when configured); system TTS is functional fallback
+**Voice Quality:** Kokoro produced high-quality, natural-sounding speech at 24kHz. The `af_bella` voice sounded clear and professional. The quality is comparable to commercial TTS services but runs entirely locally.
 
-### 3. **Design Trade-offs**
-- **Local vs Cloud**: Whisper runs locally (privacy + no API costs) but requires compute
-- **Model size**: `tiny` is fast but less accurate; `small` is good balance; `large-v3` is most accurate but slow
-- **Compute type**: `int8` quantization speeds up inference with minimal quality loss
+**User Experience:** Speaking to the agent felt more natural than typing, especially for quick requests like "make it more casual." However, the 25-30 second wait time between speaking and hearing the response felt long. For a production system, I would add visual/audio feedback during processing (e.g., "Transcribing...", "Thinking...", "Speaking...") to keep the user engaged.
 
-### 4. **User Experience**
-- Voice input feels natural for quick requests
-- Waiting for agent response can feel long (consider streaming in future)
-- Audio feedback confirms system is working (recording, transcribing, etc.)
-
-### 5. **Challenges**
-- **Kokoro setup**: Requires `espeak-ng` system dependency and downloads models (~327MB) on first run
-- **NumPy compatibility**: Needed to downgrade to `numpy<2.0` for scipy/transformers compatibility
-- **Environment variables**: Need to load `.env` explicitly in CLI context
-- **Audio permissions**: macOS requires microphone access approval
-
----
-
-## Running the System
-
-### Setup
-```bash
-# Install system dependency for Kokoro TTS
-brew install espeak-ng
-
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Install package in editable mode (for console scripts)
-pip install -e .
-
-# Ensure .env has OPENAI_API_KEY
-echo "OPENAI_API_KEY=sk-..." > .env
-```
-
-### Usage
-```bash
-# Basic usage (8 seconds, small model, Kokoro TTS)
-voice_cli --duration 8 --model small --compute_type int8 --voice af_bella
-
-# Quick test (3 seconds, tiny model, system TTS fallback)
-voice_cli --duration 3 --model tiny --use_system_tts
-
-# High accuracy (10 seconds, large model)
-voice_cli --duration 10 --model large-v3 --compute_type float16 --use_system_tts
-```
-
-### Parameters
-- `--duration`: Recording length in seconds (default: 8)
-- `--model`: Whisper model size (`tiny`, `base`, `small`, `medium`, `large-v3`)
-- `--compute_type`: Inference precision (`int8`, `float16`, `float32`)
-- `--voice`: Kokoro voice ID (e.g., `af_bella`)
-- `--use_system_tts`: Use macOS `say` command as TTS fallback
-- `--no_playback`: Save audio but don't play it
-
----
-
-## Future Enhancements
-
-1. **Voice Activity Detection (VAD)**: Auto-stop recording when user finishes speaking
-2. **Streaming TTS**: Start playback before full synthesis completes
-3. **Conversation history**: Multi-turn voice dialogue
-4. **Interrupt handling**: Allow user to interrupt agent mid-response
-5. **Cloud TTS options**: Add OpenAI TTS, ElevenLabs as alternatives
-6. **Mobile/web interface**: Extend beyond CLI
-
----
-
-## Deliverables
-
-✅ **GitHub Repo**: Extended code with voice capabilities  
-✅ **Video Demo**: Unlisted YouTube link showing voice interaction  
-✅ **Write-up**: This document (implementation + example run + insights)
+**Design Trade-offs:** Running everything locally (Whisper + Kokoro) provides privacy and eliminates API costs, but requires more compute resources and setup (installing espeak-ng, downloading models). For users who prioritize convenience over privacy, cloud-based alternatives like OpenAI's Whisper API and TTS API would be simpler to deploy.
 
 ---
 
 ## Conclusion
 
-Adding voice capabilities transforms the agent from a text-based tool into a more natural, conversational interface. The combination of local Whisper STT and neural TTS creates a responsive system that maintains privacy while delivering high-quality voice interaction. The modular design allows easy swapping of STT/TTS backends and scales to more complex multi-agent workflows.
-
-**Key Takeaway**: Voice interfaces require careful orchestration of multiple components (audio I/O, transcription, agent logic, synthesis) with attention to latency, accuracy, and user feedback at each stage.
+Adding voice capabilities transformed my text-based agent into a conversational interface that feels more natural and accessible. The combination of local Whisper STT and Kokoro TTS creates a fully self-contained system that maintains user privacy while delivering high-quality voice interaction. The modular architecture makes it easy to swap components—for example, I could replace Kokoro with OpenAI's TTS API or add streaming capabilities for lower latency. This project demonstrated that building multimodal agents requires careful orchestration of multiple components (audio I/O, transcription, agent logic, synthesis) with attention to latency, accuracy, and user feedback at each stage.
